@@ -9,15 +9,20 @@ const CreateInvoice = () => {
     const [clients, setClients] = useState([])
     const [selectedClient, setSelectedClient] = useState('')
     const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().split('T')[0])
-    const [loading, setLoading] = useState(false) // Loading indicator ke liye
+    const [loading, setLoading] = useState(false)
 
-    // Items State (Shuru mein ek khali row)
+    // Items State
     const [items, setItems] = useState([
         { description: '', quantity: 1, unit_price: 0 }
     ])
 
-    // Fetch Clients for Dropdown
+    // Fetch Clients
     useEffect(() => {
+        if(!token) {
+            navigate('/login')
+            return
+        }
+        
         fetch('http://127.0.0.1:8000/api/clients/', {
             headers: { 'Authorization': `Bearer ${token}` }
         })
@@ -44,34 +49,35 @@ const CreateInvoice = () => {
         setItems(newItems)
     }
 
-    // --- LOGIC: INPUT CHANGE HANDLING ---
     const handleItemChange = (index, field, value) => {
         const newItems = [...items]
         newItems[index][field] = value
         setItems(newItems)
     }
 
-    // --- LOGIC: AUTO CALCULATION ---
     const calculateTotal = () => {
         return items.reduce((total, item) => total + (item.quantity * item.unit_price), 0)
     }
 
-    // --- LOGIC: SUBMIT TO BACKEND (The Real Deal) ---
+    // --- LOGIC: SUBMIT TO BACKEND ---
     const handleSubmit = async () => {
-        // Validation
         if (!selectedClient) {
             alert("Please select a client first!")
             return
         }
 
-        setLoading(true) // Button ko disable kar do taaki user double click na kare
+        setLoading(true)
+
+        // --- FIX ADDED HERE: Calculate total_price for each item ---
+        const processedItems = items.map(item => ({
+            ...item,
+            total_price: item.quantity * item.unit_price // <--- YEH MISSING THA
+        }))
 
         const payload = {
             client: selectedClient,
             date: invoiceDate,
-            items: items,
-            // Subtotal aur Total hum backend par bhi calculate kar sakte hain, 
-            // par abhi simplicity ke liye frontend se bhej rahe hain.
+            items: processedItems, // Updated items bhej rahe hain
             subtotal: calculateTotal(), 
             total_amount: calculateTotal(), 
             tax_amount: 0 
@@ -89,17 +95,18 @@ const CreateInvoice = () => {
 
             if (response.ok) {
                 alert("Invoice Created Successfully! 🎉")
-                navigate('/') // Wapas Dashboard par bhejo
+                navigate('/') 
             } else {
+                // Agar error aaye to console mein dikhao
                 const errorData = await response.json()
-                console.error("Server Error:", errorData)
-                alert("Failed to create invoice. API Error.")
+                console.error("Server Error Details:", errorData)
+                alert(`Error: ${JSON.stringify(errorData)}`) // User ko bhi thoda detail dikhao
             }
         } catch (error) {
             console.error("Network Error:", error)
             alert("Something went wrong! Check backend server.")
         } finally {
-            setLoading(false) // Loading khatam
+            setLoading(false)
         }
     }
 
@@ -107,7 +114,6 @@ const CreateInvoice = () => {
         <div className="min-h-screen bg-gray-50 p-10">
             <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-lg p-8">
                 
-                {/* HEADER */}
                 <div className="flex justify-between items-center mb-8 border-b pb-4">
                     <h1 className="text-3xl font-bold text-gray-800">New Invoice</h1>
                     <button onClick={() => navigate('/')} className="text-gray-500 hover:text-gray-800">
@@ -115,7 +121,6 @@ const CreateInvoice = () => {
                     </button>
                 </div>
 
-                {/* FORM AREA */}
                 <div className="grid grid-cols-2 gap-6 mb-6">
                     <div>
                         <label className="block text-gray-700 font-bold mb-2">Select Client</label>
@@ -141,7 +146,6 @@ const CreateInvoice = () => {
                     </div>
                 </div>
 
-                {/* ITEMS TABLE */}
                 <table className="w-full mb-6">
                     <thead>
                         <tr className="bg-gray-100 text-left">
@@ -195,7 +199,6 @@ const CreateInvoice = () => {
                     </tbody>
                 </table>
 
-                {/* ACTION BUTTONS */}
                 <div className="flex justify-between items-center">
                     <button 
                         onClick={addItem}
@@ -208,7 +211,7 @@ const CreateInvoice = () => {
                         <h2 className="text-2xl font-bold mb-2">Total: ₹{calculateTotal().toFixed(2)}</h2>
                         <button 
                             onClick={handleSubmit}
-                            disabled={loading} // Loading ke time click disable
+                            disabled={loading}
                             className={`px-8 py-3 rounded-lg font-bold shadow-lg text-white ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
                         >
                             {loading ? 'Saving...' : 'Save & Generate PDF'}
