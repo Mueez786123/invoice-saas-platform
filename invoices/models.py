@@ -19,7 +19,7 @@ class Client(models.Model):
 # 2. Invoice Model (Bill ka main data)
 class Invoice(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    cleint = models.ForeignKey(Client, on_delete=models.CASCADE)
+    client = models.ForeignKey(Client, on_delete=models.CASCADE)
     invoice_number = models.CharField(max_length=50, unique=True)
     date = models.DateField()
     due_date = models.DateField(null=True, blank= True)

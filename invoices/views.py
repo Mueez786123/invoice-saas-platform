@@ -1,11 +1,10 @@
 from rest_framework import viewsets, permissions
 from .models import Client, Invoice, InvoiceItem
-from .serializers import ClientSerializer, InvioceItemSerializer, InvoiceSerializer
-
+# Imports bhi sahi karo spelling fix ke baad
+from .serializers import ClientSerializer, InvoiceItemSerializer, InvoiceSerializer
 
 ## Client View
-
-class CleintViewSet(viewsets.ModelViewSet):
+class ClientViewSet(viewsets.ModelViewSet): # Fixed Spelling 'Cleint'
     serializer_class = ClientSerializer
     permission_classes = [permissions.IsAuthenticated]
     
@@ -15,8 +14,7 @@ class CleintViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
         
-# Invoive View
-
+# Invoice View
 class InvoiceViewSet(viewsets.ModelViewSet):
     serializer_class = InvoiceSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -28,13 +26,10 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         serializer.save(user=self.request.user)
         
 ## Item view
-
 class InvoiceItemViewSet(viewsets.ModelViewSet):
-    serializer_class = InvioceItemSerializer
+    serializer_class = InvoiceItemSerializer
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
-        return InvoiceItem.objects.filter(user=self.request.user)
-    
-    
-    
+        # InvoiceItem ke paas direct user nahi hai, invoice ke through user check karenge
+        return InvoiceItem.objects.filter(invoice__user=self.request.user)

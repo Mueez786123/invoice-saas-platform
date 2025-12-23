@@ -20,6 +20,7 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView, 
     TokenRefreshView,
 )
+from invoices.urls import router
 # from invoices.urls import *
 
 urlpatterns = [
@@ -28,5 +29,5 @@ urlpatterns = [
     
     # Authentication Urls Here
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain pair'),
-    path("api/token/refresh", TokenRefreshView.as_view(), name="token_refresh")    
+    path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh")    
 ]
