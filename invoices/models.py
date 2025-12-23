@@ -34,7 +34,7 @@ class Invoice(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
-        return f"{self.invoice_number} - {self.cleint.name}"
+        return f"{self.invoice_number} - {self.client.name}"
     
     
 # 3. Items Model (Bill ke andar ki items ki list)

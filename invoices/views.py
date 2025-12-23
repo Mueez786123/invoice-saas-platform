@@ -6,7 +6,10 @@ from django.http import HttpResponse
 from django.template.loader import get_template
 from xhtml2pdf import pisa
 from rest_framework.decorators import action
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
+
+from rest_framework.permissions import IsAuthenticated, AllowAny 
+
 
 ## Client View
 class ClientViewSet(viewsets.ModelViewSet): # Fixed Spelling 'Cleint'
@@ -31,10 +34,10 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         serializer.save(user=self.request.user)
         
     ## pdf generator function yaha banayenge
-    @action(detail=True, methods=['get'])
+    @action(detail=True, methods=['get'], permission_classes = [AllowAny])
     def download(self, request, pk=None):
         #1 jis invoice ka pdf chahiye use database se nikalo
-        invoice = self.get_object()
+        invoice = get_object_or_404(Invoice, pk=pk)
         #2. HTML template load karo
         template_path = 'invoices/pdf_template.html'
         context = {'invoice': invoice}
