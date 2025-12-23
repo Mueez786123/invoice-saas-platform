@@ -2,6 +2,11 @@ from rest_framework import viewsets, permissions
 from .models import Client, Invoice, InvoiceItem
 # Imports bhi sahi karo spelling fix ke baad
 from .serializers import ClientSerializer, InvoiceItemSerializer, InvoiceSerializer
+from django.http import HttpResponse
+from django.template.loader import get_template
+from xhtml2pdf import pisa
+from rest_framework.decorators import action
+from django.shortcuts import render
 
 ## Client View
 class ClientViewSet(viewsets.ModelViewSet): # Fixed Spelling 'Cleint'
@@ -25,7 +30,31 @@ class InvoiceViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
         
-## Item view
+    ## pdf generator function yaha banayenge
+    @action(detail=True, methods=['get'])
+    def download(self, request, pk=None):
+        #1 jis invoice ka pdf chahiye use database se nikalo
+        invoice = self.get_object()
+        #2. HTML template load karo
+        template_path = 'invoices/pdf_template.html'
+        context = {'invoice': invoice}
+        template = get_template(template_path)
+        html = template.render(context)
+        
+        # 3. Pdf Response banao
+        response = HttpResponse(content_type='application/pdf')
+        
+        # for pdf download   
+        response['Content-Disposition'] = f'attachment; filename="Invoice_{invoice.invoice_number}.pdf"'
+        response['Content-Disposition'] = f'filename="Invoice_{invoice.invoice_number}.pdf"'
+        # 4. HTML se PDF convert karo
+        pisa_status = pisa.CreatePDF(html, dest=response)
+        
+        if pisa_status.err:
+            return HttpResponse('We had some error <pre>' + html + '</pre>')
+
+        return response
+
 class InvoiceItemViewSet(viewsets.ModelViewSet):
     serializer_class = InvoiceItemSerializer
     permission_classes = [permissions.IsAuthenticated]

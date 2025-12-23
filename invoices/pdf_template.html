@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Helvetica, sans-serif; color: #333; }
+        .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
+        .h1 { color: #2563eb; font-size: 24px; }
+        .info-table { width: 100%; margin-bottom: 20px; }
+        .info-table td { padding: 5px; }
+        .items-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .items-table th { background-color: #f3f4f6; padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+        .items-table td { padding: 10px; border-bottom: 1px solid #eee; }
+        .total-section { text-align: right; margin-top: 20px; font-size: 18px; }
+        .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #777; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>INVOICE</h1>
+        <p><strong>Invoice #:</strong> {{ invoice.invoice_number }}</p>
+        <p><strong>Date:</strong> {{ invoice.date }}</p>
+    </div>
+
+    <table class="info-table">
+        <tr>
+            <td width="50%">
+                <strong>Bill To:</strong><br>
+                {{ invoice.client.name }}<br>
+                {{ invoice.client.email }}<br>
+                {{ invoice.client.address|linebreaks }}
+            </td>
+            <td width="50%" style="text-align: right;">
+                <strong>From:</strong><br>
+                Mueezur's AI Agency<br>
+                admin@aiagency.com<br>
+                Mumbai, India
+            </td>
+        </tr>
+    </table>
+
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th>Item Description</th>
+                <th>Qty</th>
+                <th>Unit Price</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in invoice.items.all %}
+            <tr>
+                <td>{{ item.description }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>₹{{ item.unit_price }}</td>
+                <td>₹{{ item.total_price }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="total-section">
+        <p><strong>Subtotal:</strong> ₹{{ invoice.subtotal }}</p>
+        <p><strong>Tax (0%):</strong> ₹{{ invoice.tax_amount }}</p>
+        <p style="color: #2563eb; font-size: 22px;"><strong>Grand Total: ₹{{ invoice.total_amount }}</strong></p>
+    </div>
+
+    <div class="footer">
+        <p>Thank you for your business!</p>
+        <p>This is a computer-generated invoice.</p>
+    </div>
+</body>
+</html>
