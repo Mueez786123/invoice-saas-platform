@@ -15,6 +15,7 @@ class InvoiceItemSerializer(serializers.ModelSerializer):  # Spelling Fixed
     class Meta:
         model = InvoiceItem
         fields = "__all__"
+        read_only_fields = ['invoice']
 
 # --- INVOICE TRANSLATOR ---
 class InvoiceSerializer(serializers.ModelSerializer):
