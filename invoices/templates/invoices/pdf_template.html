@@ -1,73 +1,275 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="utf-8">
+    <title>Invoice</title>
     <style>
-        body { font-family: Helvetica, sans-serif; color: #333; }
-        .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
-        .h1 { color: #2563eb; font-size: 24px; }
-        .info-table { width: 100%; margin-bottom: 20px; }
-        .info-table td { padding: 5px; }
-        .items-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        .items-table th { background-color: #f3f4f6; padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
-        .items-table td { padding: 10px; border-bottom: 1px solid #eee; }
-        .total-section { text-align: right; margin-top: 20px; font-size: 18px; }
-        .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #777; }
+        /* --- PAGE SETUP --- */
+        @page {
+            size: A4;
+            margin: 1cm;
+            @frame footer_frame {           /* Footer fixed at bottom */
+                -pdf-frame-content: footerContent;
+                bottom: 0cm;
+                margin-left: 1cm;
+                margin-right: 1cm;
+                height: 1cm;
+            }
+        }
+        
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 12px;
+            color: #333333;
+            line-height: 1.4;
+        }
+
+        /* --- LAYOUT HELPERS (Tables) --- */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        td {
+            vertical-align: top;
+            padding: 5px;
+        }
+
+        /* --- HEADER SECTION (Blue Box) --- */
+        .header-bg {
+            background-color: #2563EB; /* Modern Blue */
+            color: #ffffff;
+            padding: 20px;
+            border-radius: 6px;
+        }
+        .company-name {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #ffffff;
+        }
+        .header-text {
+            color: #E0E7FF; /* Light Blue Text */
+            font-size: 11px;
+        }
+        .invoice-title {
+            font-size: 30px;
+            font-weight: bold;
+            text-align: right;
+            color: #ffffff;
+            opacity: 0.9;
+        }
+        .invoice-meta {
+            text-align: right;
+            color: #E0E7FF;
+            font-size: 12px;
+        }
+
+        /* --- INFO SECTION (Bill To) --- */
+        .section-gap { margin-top: 30px; }
+        .label {
+            color: #6B7280; /* Gray */
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+        .value-bold {
+            font-size: 13px;
+            font-weight: bold;
+            color: #111827; /* Dark Black */
+        }
+        .status-paid {
+            color: #059669; /* Green */
+            font-weight: bold;
+            font-size: 14px;
+            text-transform: uppercase;
+            border: 2px solid #059669;
+            padding: 5px 10px;
+            display: inline-block;
+        }
+        .status-pending {
+            color: #D97706; /* Orange */
+            font-weight: bold;
+            font-size: 14px;
+            text-transform: uppercase;
+            border: 2px solid #D97706;
+            padding: 5px 10px;
+            display: inline-block;
+        }
+
+        /* --- ITEMS TABLE --- */
+        .items-table {
+            margin-top: 30px;
+            width: 100%;
+            border-bottom: 1px solid #E5E7EB;
+        }
+        .items-table th {
+            background-color: #F3F4F6;
+            color: #374151;
+            font-weight: bold;
+            font-size: 11px;
+            text-transform: uppercase;
+            text-align: left;
+            padding: 10px;
+            border-bottom: 2px solid #E5E7EB;
+        }
+        .items-table td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #E5E7EB;
+            color: #1F2937;
+        }
+        .text-right { text-align: right; }
+        .bg-gray { background-color: #F9FAFB; }
+
+        /* --- TOTALS SECTION --- */
+        .totals-table {
+            width: 100%;
+            margin-top: 20px;
+        }
+        .totals-table td {
+            padding: 6px 0;
+            text-align: right;
+        }
+        .total-label {
+            color: #6B7280;
+            padding-right: 20px;
+        }
+        .total-amount {
+            font-weight: bold;
+            font-size: 13px;
+            width: 120px;
+        }
+        .grand-total {
+            color: #2563EB;
+            font-size: 16px;
+            font-weight: bold;
+            border-top: 2px solid #2563EB;
+            padding-top: 10px;
+        }
+
+        /* --- FOOTER & BANK --- */
+        .bank-box {
+            background-color: #F9FAFB;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #E5E7EB;
+            font-size: 11px;
+            color: #4B5563;
+        }
+        #footerContent {
+            text-align: center;
+            color: #9CA3AF;
+            font-size: 10px;
+            border-top: 1px solid #E5E7EB;
+            padding-top: 10px;
+        }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>INVOICE</h1>
-        <p><strong>Invoice #:</strong> {{ invoice.invoice_number }}</p>
-        <p><strong>Date:</strong> {{ invoice.date }}</p>
+
+    <div class="header-bg">
+        <table>
+            <tr>
+                <td width="60%">
+                    <div class="company-name">{{ profile.company_name|default:"Your Company Name" }}</div>
+                    <div class="header-text">{{ profile.company_email }}</div>
+                    <div class="header-text">{{ profile.company_phone }}</div>
+                    <div class="header-text">{{ profile.company_address|linebreaksbr }}</div>
+                </td>
+                <td width="40%" align="right">
+                    <div class="invoice-title">INVOICE</div>
+                    <div class="invoice-meta">
+                        <strong>#{{ invoice.invoice_number }}</strong><br>
+                        Date: {{ invoice.date }}<br>
+                        Due Date: {{ invoice.due_date|default:"-" }}
+                    </div>
+                </td>
+            </tr>
+        </table>
     </div>
 
-    <table class="info-table">
-        <tr>
-            <td width="50%">
-                <strong>Bill To:</strong><br>
-                {{ invoice.client.name }}<br>
-                {{ invoice.client.email }}<br>
-                {{ invoice.client.address|linebreaks }}
-            </td>
-            <td width="50%" style="text-align: right;">
-                <strong>From:</strong><br>
-                Mueezur's AI Agency<br>
-                admin@aiagency.com<br>
-                Mumbai, India
-            </td>
-        </tr>
-    </table>
+    <div class="section-gap">
+        <table>
+            <tr>
+                <td width="55%">
+                    <div class="label">BILL TO</div>
+                    <div class="value-bold">{{ invoice.client.name }}</div>
+                    <div>{{ invoice.client.email }}</div>
+                    <div>{{ invoice.client.phone|default:"" }}</div>
+                    <div style="color: #6B7280;">{{ invoice.client.address|linebreaksbr }}</div>
+                </td>
+                <td width="45%" align="right" valign="middle">
+                    {% if invoice.is_paid %}
+                        <div class="status-paid">PAID</div>
+                    {% else %}
+                        <div class="status-pending">PAYMENT PENDING</div>
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
+    </div>
 
     <table class="items-table">
         <thead>
             <tr>
-                <th>Item Description</th>
-                <th>Qty</th>
-                <th>Unit Price</th>
-                <th>Total</th>
+                <th width="50%">Description</th>
+                <th width="15%" class="text-right">Qty</th>
+                <th width="15%" class="text-right">Price</th>
+                <th width="20%" class="text-right">Total</th>
             </tr>
         </thead>
         <tbody>
             {% for item in invoice.items.all %}
-            <tr>
-                <td>{{ item.description }}</td>
-                <td>{{ item.quantity }}</td>
-                <td>₹{{ item.unit_price }}</td>
-                <td>₹{{ item.total_price }}</td>
+            <tr class="{% cycle 'bg-gray' '' %}"> <td>
+                    <strong>{{ item.description }}</strong>
+                </td>
+                <td class="text-right">{{ item.quantity }}</td>
+                <td class="text-right">₹{{ item.unit_price }}</td>
+                <td class="text-right">₹{{ item.total_price }}</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
 
-    <div class="total-section">
-        <p><strong>Subtotal:</strong> ₹{{ invoice.subtotal }}</p>
-        <p><strong>Tax (0%):</strong> ₹{{ invoice.tax_amount }}</p>
-        <p style="color: #2563eb; font-size: 22px;"><strong>Grand Total: ₹{{ invoice.total_amount }}</strong></p>
+    <table>
+        <tr>
+            <td width="55%">
+                <div class="section-gap">
+                    <div class="label">PAYMENT INFO</div>
+                    <div class="bank-box">
+                        <strong>Bank Name:</strong> {{ profile.bank_name|default:"-" }}<br>
+                        <strong>Account No:</strong> {{ profile.account_number|default:"-" }}<br>
+                        <strong>IFSC Code:</strong> {{ profile.ifsc_code|default:"-" }}
+                    </div>
+                    <div style="margin-top: 10px; font-size: 10px; color: #6B7280;">
+                        Notes: Thank you for your business. Please include the invoice number in your payment reference.
+                    </div>
+                </div>
+            </td>
+            
+            <td width="45%">
+                <table class="totals-table">
+                    <tr>
+                        <td class="total-label">Subtotal</td>
+                        <td class="total-amount">₹{{ invoice.subtotal }}</td>
+                    </tr>
+                    <tr>
+                        <td class="total-label">Tax (0%)</td>
+                        <td class="total-amount">₹{{ invoice.tax_amount }}</td>
+                    </tr>
+                    <tr>
+                        <td class="total-label grand-total">Grand Total</td>
+                        <td class="total-amount grand-total">₹{{ invoice.total_amount }}</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    <div id="footerContent">
+        Generated by LeadsByTech Invoice Platform • Page <pdf:pagenumber> of <pdf:pagecount>
     </div>
 
-    <div class="footer">
-        <p>Thank you for your business!</p>
-        <p>This is a computer-generated invoice.</p>
-    </div>
 </body>
 </html>

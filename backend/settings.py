@@ -43,7 +43,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',  # <--- YEH ADD KARO SABSE UPAR
+    'corsheaders.middleware.CorsMiddleware',  
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -129,8 +129,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # React frontend is address par chalta hai, isliye hum isse allow kar rahe hain
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
-]
 
+]
+CORS_ALLOW_ALL_ORIGINS = True
 ## Rest Fromework Settings ---
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES':(
@@ -150,3 +151,7 @@ SIMPLE_JWT = {
     'REFRESH_TOKET_LIFETIME': timedelta(days=1),
     
 }
+
+
+# EMAIL SETTINGS (Development Mode)
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

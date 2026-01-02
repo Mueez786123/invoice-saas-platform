@@ -1,15 +1,18 @@
 import { useState } from 'react'
 
+import { Link, useNavigate } from 'react-router-dom'
+
 const Login = ({ setToken }) => {
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
     const [error, setError] = useState('')
+    
+    const navigate = useNavigate() // 2. Hook initialize karo
 
     const handleSubmit = async (e) => {
-        e.preventDefault() // Page reload hone se roko
+        e.preventDefault()
         setError('')
 
-        // Backend se baat karo
         const response = await fetch('http://127.0.0.1:8000/api/token/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -19,12 +22,13 @@ const Login = ({ setToken }) => {
         const data = await response.json()
 
         if (response.ok) {
-            // Success! Token save karo
             localStorage.setItem('access', data.access)
             localStorage.setItem('refresh', data.refresh)
-            setToken(data.access) // App ko batao ki login ho gaya
+            setToken(data.access)
+            
+            // 🔥 YEH LINE MISSING THI:
+            navigate('/')  // User ko Dashboard par bhejo
         } else {
-            // Fail! Error dikhao
             setError('Invalid Username or Password!')
         }
     }
@@ -55,12 +59,19 @@ const Login = ({ setToken }) => {
                             onChange={(e) => setPassword(e.target.value)}
                         />
                     </div>
+                    <div className="text-right mb-4">
+                    <Link to="/forgot-password" className="text-sm text-blue-500 hover:underline">
+                        Forgot Password?
+                    </Link>
+                    </div>
                     <button 
                         type="submit" 
-                        className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition"
-                    >
+                        className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition">
                         Login
                     </button>
+                    <p className="mt-4 text-center text-sm">
+                        Don't have an account? <Link to="/register" className="text-blue-600">Sign Up</Link>
+                    </p>
                 </form>
             </div>
         </div>

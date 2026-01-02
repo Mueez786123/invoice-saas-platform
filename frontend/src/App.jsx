@@ -4,6 +4,11 @@ import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 // Pages Import
 import Login from './pages/Login'
 import CreateInvoice from './pages/CreateInvoice' 
+import Register from './pages/Register'
+import RequestPasswordReset from './pages/RequestPasswordReset' // New
+import ResetPassword from './pages/ResetPassword'
+import CompanySetup from './pages/CompanySetup'
+
 
 // --- ARCHITECTURE COMPONENT: DASHBOARD ---
 // Responsible for: Data Visualization, List Management, and Document Retrieval
@@ -224,6 +229,10 @@ function App() {
   return (
     <Routes>
         <Route path="/login" element={<Login setToken={setToken} />} />
+        <Route path="/register" element={<Register />} /> {/* New Route */}
+        <Route path="/forgot-password" element={<RequestPasswordReset />} />
+        <Route path="/reset-password/:uid/:token" element={<ResetPassword />} />
+        <Route path="/setup" element={token ? <CompanySetup /> : <Navigate to="/login" />} />
         
         {/* PROTECTED ROUTES */}
         <Route 
